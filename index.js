@@ -9,7 +9,11 @@ function infiGrid () {
       createInfigrid({
         element,
         cellWidth: vnode.attrs.cellWidth,
-        cellHeight: vnode.attrs.cellHeight
+        cellHeight: vnode.attrs.cellHeight,
+
+        onCellCreate: coords => {
+          console.log('coords created:', coords);
+        }
       });
     },
 

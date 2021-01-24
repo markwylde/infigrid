@@ -14,6 +14,8 @@ function createInfigrid (options) {
   options.worldY = options.worldY || 0;
   options.zoomIntensity = options.zoomIntensity || 0.02;
 
+  options.watching = {};
+
   let scale = 1;
 
   let dirty = true;
@@ -46,6 +48,11 @@ function createInfigrid (options) {
       for (let x = -1; x < totalRows; x++) {
         const pxX = viewX + (cellWidth * x) + 1;
         const pxY = viewY + (cellHeight * y) + 1;
+
+        const actualY = (worldY + y) * -1;
+        const actualX = worldX + x;
+        const coords = `${actualX}:${actualY}`;
+
         context.beginPath();
         context.lineWidth = 1;
         context.strokeStyle = 'red';
@@ -57,11 +64,9 @@ function createInfigrid (options) {
         );
         context.stroke();
         context.font = '14px Arial';
-        context.fillText(`${worldX + x}:${(worldY + y) * -1}`, pxX + 10, pxY + 20);
+        context.fillText(coords, pxX + 10, pxY + 20);
       }
     }
-
-    window.requestAnimationFrame(draw);
   }
   draw();
 
