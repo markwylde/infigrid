@@ -57,7 +57,7 @@ function createInfigrid (options) {
         );
         context.stroke();
         context.font = '14px Arial';
-        context.fillText(`${(worldY + y) * -1}:${worldX + x}`, pxX + 10, pxY + 20);
+        context.fillText(`${worldX + x}:${(worldY + y) * -1}`, pxX + 10, pxY + 20);
       }
     }
 
