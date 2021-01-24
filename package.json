@@ -1,0 +1,34 @@
+{
+  "name": "infigrid",
+  "version": "1.0.0",
+  "description": "An inifite grid generator",
+  "main": "index.js",
+  "scripts": {
+    "build": "cssbun -o index.bundle.css style.css && jsbun -o index.bundle.js ./index.js && uglifyjs index.bundle.js --compress --mangle -o index.bundle.js",
+    "watch:js": "jsbun -w -o ./index.bundle.js ./index.js",
+    "watch:css": "cssbun -w -o index.bundle.css style.css",
+    "watch": "npm run watch:js & npm run watch:css",
+    "serve": "servatron --spa",
+    "start": "npm run watch & npm run serve",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cssbun": "^1.1.11",
+    "jsbun": "^2.0.1",
+    "mithril": "^2.0.4",
+    "servatron": "^1.1.0",
+    "uglify-es": "^3.3.9"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markwylde/infigrid.git"
+  },
+  "bugs": {
+    "url": "https://github.com/markwylde/infigrid/issues"
+  },
+  "homepage": "https://github.com/markwylde/infigrid#readme"
+}
