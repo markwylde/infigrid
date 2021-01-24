@@ -39,8 +39,8 @@ function createInfigrid (options) {
     const viewX = cellWidth * (xRaw % 1);
     const viewY = cellHeight * (yRaw % 1);
 
-    const worldX = parseInt(xRaw);
-    const worldY = parseInt(yRaw);
+    const worldX = parseInt(xRaw) * -1;
+    const worldY = parseInt(yRaw) * -1;
 
     for (let y = -1; y < totalCells; y++) {
       for (let x = -1; x < totalRows; x++) {
@@ -57,7 +57,7 @@ function createInfigrid (options) {
         );
         context.stroke();
         context.font = '14px Arial';
-        context.fillText(`${worldX + x * -1}:${worldY + y * -1}`, pxX + 10, pxY + 20);
+        context.fillText(`${(worldY + y) * -1}:${worldX + x}`, pxX + 10, pxY + 20);
       }
     }
 
