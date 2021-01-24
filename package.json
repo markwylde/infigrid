@@ -4,7 +4,7 @@
   "description": "An inifite grid generator",
   "main": "index.js",
   "scripts": {
-    "build": "cssbun -o index.bundle.css style.css && jsbun -o index.bundle.js ./index.js && uglifyjs index.bundle.js --compress --mangle -o index.bundle.js",
+    "build": "rm -rf dist && mkdir dist && cp index.html dist && cssbun -o dist/index.bundle.css style.css && jsbun -o dist/index.bundle.js ./index.js && uglifyjs dist/index.bundle.js --compress --mangle -o dist/index.bundle.js",
     "watch:js": "jsbun -w -o ./index.bundle.js ./index.js",
     "watch:css": "cssbun -w -o index.bundle.css style.css",
     "watch": "npm run watch:js & npm run watch:css",
