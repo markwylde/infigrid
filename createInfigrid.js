@@ -2,20 +2,16 @@ function createInfigrid (options) {
   options.element.style.position = 'absolute';
   options.element.style.width = '100%';
   options.element.style.height = '100%';
-  options.element.style.backgroundColor = 'yellow';
   options.element.style.overflow = 'hidden';
 
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
-  canvas.width = options.element.offsetWidth;
-  canvas.height = options.element.offsetHeight;
 
   options.worldX = options.worldX || 0;
   options.worldY = options.worldY || 0;
   options.zoomIntensity = options.zoomIntensity || 0.02;
 
-  options.watching = {};
-
+  let lastArea;
   let scale = 1;
 
   let dirty = true;
@@ -29,11 +25,14 @@ function createInfigrid (options) {
     dirty = false;
     context.clearRect(0, 0, canvas.width, canvas.height);
 
+    canvas.width = options.element.offsetWidth;
+    canvas.height = options.element.offsetHeight;
+
     const cellWidth = options.cellWidth / scale;
     const cellHeight = options.cellHeight / scale;
 
     const totalRows = Math.ceil(options.element.offsetWidth / cellWidth) + 2;
-    const totalCells = Math.ceil(options.element.offsetHeight / cellHeight) + 2;
+    const totalColumns = Math.ceil(options.element.offsetHeight / cellHeight) + 2;
 
     const xRaw = options.worldX / cellWidth;
     const yRaw = options.worldY / cellHeight;
@@ -44,10 +43,10 @@ function createInfigrid (options) {
     const worldX = parseInt(xRaw) * -1;
     const worldY = parseInt(yRaw) * -1;
 
-    for (let y = -1; y < totalCells; y++) {
+    for (let y = -1; y < totalColumns; y++) {
       for (let x = -1; x < totalRows; x++) {
-        const pxX = viewX + (cellWidth * x) + 1;
-        const pxY = viewY + (cellHeight * y) + 1;
+        const pxX = viewX + ((cellWidth - 1) * x);
+        const pxY = viewY + ((cellHeight - 1) * y);
 
         const actualY = (worldY + y) * -1;
         const actualX = worldX + x;
@@ -55,17 +54,28 @@ function createInfigrid (options) {
 
         context.beginPath();
         context.lineWidth = 1;
-        context.strokeStyle = 'red';
-        context.rect(
+        const style = options.getCell(actualX, actualY);
+        context.strokeStyle = 'black';
+        context.fillStyle = style;
+        context.fillRect(
           pxX,
           pxY,
           cellWidth,
           cellHeight
         );
         context.stroke();
-        context.font = '14px Arial';
+
+        context.fillStyle = 'black';
+        context.font = '10px Arial';
         context.fillText(coords, pxX + 10, pxY + 20);
       }
+    }
+
+    const area = worldX + ':' + worldY + ':' + (worldY + totalColumns) + ':' + (worldX + totalRows);
+
+    if (area !== lastArea) {
+      lastArea = area;
+      options.onChange && options.onChange(worldX, worldY, worldY + totalColumns, worldX + totalRows);
     }
   }
   draw();
@@ -121,6 +131,14 @@ function createInfigrid (options) {
 
     // Update scale and others.
     scale *= zoom;
+
+    scale = scale > 2 ? 2 : scale;
+    scale = scale < 0.5 ? 0.5 : scale;
+
+    dirty = true;
+  });
+
+  window.addEventListener('resize', () => {
     dirty = true;
   });
 
