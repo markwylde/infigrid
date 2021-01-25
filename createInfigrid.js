@@ -34,8 +34,8 @@ function createInfigrid (options) {
     const totalRows = Math.ceil(options.element.offsetWidth / cellWidth) + 2;
     const totalColumns = Math.ceil(options.element.offsetHeight / cellHeight) + 2;
 
-    const xRaw = options.worldX / cellWidth;
-    const yRaw = options.worldY / cellHeight;
+    const xRaw = (options.worldX / scale) / cellWidth;
+    const yRaw = (options.worldY / scale) / cellHeight;
 
     const viewX = cellWidth * (xRaw % 1);
     const viewY = cellHeight * (yRaw % 1);
@@ -123,17 +123,17 @@ function createInfigrid (options) {
     const wheel = event.deltaY < 0 ? 1 : -1;
 
     // Compute zoom factor.
-    const zoom = Math.exp(wheel * options.zoomIntensity);
+    let zoom = Math.exp(wheel * options.zoomIntensity);
+    zoom = scale * zoom > 2 ? 1 : zoom;
+    zoom = scale * zoom < 0.5 ? 1 : zoom;
 
     // Computer offset
-    options.worldX -= mousex / (scale * zoom) - mousex / scale;
-    options.worldY -= mousey / (scale * zoom) - mousey / scale;
+    const newScale = scale * zoom;
+    options.worldX -= mousex / (newScale) - mousex / scale;
+    options.worldY -= mousey / (newScale) - mousey / scale;
 
     // Update scale and others.
     scale *= zoom;
-
-    scale = scale > 2 ? 2 : scale;
-    scale = scale < 0.5 ? 0.5 : scale;
 
     dirty = true;
   });

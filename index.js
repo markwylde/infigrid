@@ -8,19 +8,33 @@ function getSection (x, y) {
   const t = '#c5d2f3';
   const p = '#9e9ebe';
   const o = 'gray';
+  const f = 'green';
 
-  return [
-    [o, o, o, o, o, o, o, o, o, o],
-    [o, p, p, p, p, t, t, t, t, o],
-    [o, t, t, t, t, p, p, p, p, o],
-    [o, p, p, p, p, t, t, t, t, o],
-    [o, t, t, t, t, p, p, p, p, o],
-    [o, p, p, p, p, t, t, t, t, o],
-    [o, t, t, t, t, p, p, p, p, o],
-    [o, p, p, p, p, t, t, t, t, o],
-    [o, t, t, t, t, p, p, p, p, o],
-    [o, o, o, o, o, o, o, o, o, o]
-  ];
+  return x % 2 === 0 && y % 2 === 0
+    ? [
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, p, p, p, p, t, t, t, t, o],
+        [o, t, t, t, t, p, p, p, p, o],
+        [o, p, p, p, p, t, t, t, t, o],
+        [o, t, t, t, t, p, p, p, p, o],
+        [o, p, p, p, p, t, t, t, t, o],
+        [o, t, t, t, t, p, p, p, p, o],
+        [o, p, p, p, p, t, t, t, t, o],
+        [o, t, t, t, t, p, p, p, p, o],
+        [o, o, o, o, o, o, o, o, o, o]
+      ]
+    : [
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f],
+        [f, f, f, f, f, f, f, f, f, f]
+      ];
 }
 
 function infiGrid () {
