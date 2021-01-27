@@ -4,23 +4,39 @@ const m = require('mithril');
 
 const createInfigrid = require('./createInfigrid');
 
+function createImage (src) {
+  const image = new window.Image();
+  image.src = src;
+  image.onload = () => {
+    window.redraw && window.redraw();
+  };
+  return image;
+}
+
+const tiles = {
+  grass: createImage('./img/grass.png'),
+  ground: createImage('./img/ground.png'),
+  dirt: createImage('./img/dirt.png'),
+  water: createImage('./img/water.png')
+};
+
 function getSection (x, y) {
-  const t = '#c5d2f3';
-  const p = '#9e9ebe';
-  const o = 'gray';
-  const f = 'green';
+  const t = tiles.grass;
+  const p = tiles.ground;
+  const o = tiles.dirt;
+  const f = tiles.water;
 
   return x % 2 === 0 && y % 2 === 0
     ? [
         [o, o, o, o, o, o, o, o, o, o],
-        [o, p, p, p, p, t, t, t, t, o],
-        [o, t, t, t, t, p, p, p, p, o],
-        [o, p, p, p, p, t, t, t, t, o],
-        [o, t, t, t, t, p, p, p, p, o],
-        [o, p, p, p, p, t, t, t, t, o],
-        [o, t, t, t, t, p, p, p, p, o],
-        [o, p, p, p, p, t, t, t, t, o],
-        [o, t, t, t, t, p, p, p, p, o],
+        [o, t, t, t, t, t, t, t, t, o],
+        [o, t, p, p, p, t, t, t, t, o],
+        [o, t, p, p, p, t, t, t, t, o],
+        [o, t, p, p, p, t, t, t, t, o],
+        [o, t, t, t, t, t, t, t, t, o],
+        [o, t, t, t, t, t, t, t, t, o],
+        [o, t, t, t, t, t, t, t, t, o],
+        [o, t, t, t, t, t, t, t, t, o],
         [o, o, o, o, o, o, o, o, o, o]
       ]
     : [

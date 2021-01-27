@@ -58,26 +58,27 @@ function createInfigrid (options) {
         const pxX = viewX + (cellWidth * x);
         const pxY = viewY + (cellHeight * y);
 
-        const actualY = (worldY + y) * -1;
+        const actualY = (worldY + y);
         const actualX = worldX + x;
-        const coords = `${actualX}:${actualY}`;
+        // const coords = `${actualX}:${actualY}`;
 
-        context.beginPath();
-        context.lineWidth = 1;
-        const style = options.getCell(actualX, actualY);
-        context.strokeStyle = 'black';
-        context.fillStyle = style;
-        context.fillRect(
-          pxX - 1,
-          pxY - 1,
-          cellWidth + 1,
-          cellHeight + 1
-        );
-        context.stroke();
+        // context.beginPath();
+        // context.lineWidth = 1;
+        const image = options.getCell(actualX, actualY);
+        // context.strokeStyle = 'black';
+        // context.fillStyle = style;
+        // context.fillRect(
+        //   pxX - 1,
+        //   pxY - 1,
+        //   cellWidth + 1,
+        //   cellHeight + 1
+        // );
+        context.drawImage(image, pxX - 1, pxY - 1, cellWidth + 1, cellHeight + 1);
+        // context.stroke();
 
-        context.fillStyle = 'black';
-        context.font = '10px Arial';
-        context.fillText(coords, pxX + 10, pxY + 20);
+        // context.fillStyle = 'black';
+        // context.font = '10px Arial';
+        // context.fillText(coords, pxX + 10, pxY + 20);
       }
     }
 
@@ -91,6 +92,10 @@ function createInfigrid (options) {
     previousDelta = currentDelta;
   }
   draw();
+
+  window.redraw = () => {
+    dirty = true;
+  };
 
   let startX;
   let startY;
