@@ -117,23 +117,24 @@ function createInfigrid (options) {
   canvas.addEventListener('wheel', function (event) {
     event.preventDefault();
 
-    const mousex = event.offsetX;
-    const mousey = event.offsetY;
+    const mouseX = event.offsetX;
+    const mouseY = event.offsetY;
 
     const wheel = event.deltaY < 0 ? 1 : -1;
 
     // Compute zoom factor.
-    let zoom = Math.exp(wheel * options.zoomIntensity);
-    zoom = scale * zoom > 2 ? 1 : zoom;
-    zoom = scale * zoom < 0.5 ? 1 : zoom;
+    let tweakScale = Math.exp(wheel * options.zoomIntensity);
+    tweakScale = scale * tweakScale > 2 ? 1 : tweakScale;
+    tweakScale = scale * tweakScale < 0.5 ? 1 : tweakScale;
 
     // Computer offset
-    const newScale = scale * zoom;
-    options.worldX -= mousex / (newScale) - mousex / scale;
-    options.worldY -= mousey / (newScale) - mousey / scale;
+    const newScale = scale * tweakScale;
+    const scaleDiff = scale - newScale;
+    options.worldX = options.worldX - (mouseX * scaleDiff);
+    options.worldY = options.worldY - (mouseY * scaleDiff);
 
     // Update scale and others.
-    scale *= zoom;
+    scale *= tweakScale;
 
     dirty = true;
   });
