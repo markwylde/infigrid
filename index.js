@@ -61,7 +61,7 @@ function infiGrid () {
         },
 
         onChange: (x1, y1, x2, y2) => {
-          console.log('coords created:', { x1, y1, x2, y2 });
+          // console.log('coords created:', { x1, y1, x2, y2 });
         }
       });
     },

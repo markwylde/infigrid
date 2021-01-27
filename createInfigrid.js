@@ -10,20 +10,30 @@ function createInfigrid (options) {
   options.worldX = options.worldX || 0;
   options.worldY = options.worldY || 0;
   options.zoomIntensity = options.zoomIntensity || 0.02;
+  options.maximumScale = options.maximumScale || 3;
+  options.minimumScale = options.minimumScale || 0.1;
 
   let lastArea;
   let scale = 1;
 
   let dirty = true;
-  function draw () {
+  let previousDelta = 0;
+  const fpsLimit = 50;
+
+  function draw (currentDelta) {
     window.requestAnimationFrame(draw);
+    const delta = currentDelta - previousDelta;
+
+    if (fpsLimit && delta < 1000 / fpsLimit) {
+      return;
+    }
 
     if (!dirty) {
       return;
     }
 
     dirty = false;
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    // context.clearRect(0, 0, canvas.width, canvas.height);
 
     canvas.width = options.element.offsetWidth;
     canvas.height = options.element.offsetHeight;
@@ -45,8 +55,8 @@ function createInfigrid (options) {
 
     for (let y = -1; y < totalColumns; y++) {
       for (let x = -1; x < totalRows; x++) {
-        const pxX = viewX + ((cellWidth - 1) * x);
-        const pxY = viewY + ((cellHeight - 1) * y);
+        const pxX = viewX + (cellWidth * x);
+        const pxY = viewY + (cellHeight * y);
 
         const actualY = (worldY + y) * -1;
         const actualX = worldX + x;
@@ -58,10 +68,10 @@ function createInfigrid (options) {
         context.strokeStyle = 'black';
         context.fillStyle = style;
         context.fillRect(
-          pxX,
-          pxY,
-          cellWidth,
-          cellHeight
+          pxX - 1,
+          pxY - 1,
+          cellWidth + 1,
+          cellHeight + 1
         );
         context.stroke();
 
@@ -77,6 +87,8 @@ function createInfigrid (options) {
       lastArea = area;
       options.onChange && options.onChange(worldX, worldY, worldY + totalColumns, worldX + totalRows);
     }
+
+    previousDelta = currentDelta;
   }
   draw();
 
@@ -99,8 +111,8 @@ function createInfigrid (options) {
     const clientX = event.clientX || event.touches[0].clientX;
     const clientY = event.clientY || event.touches[0].clientY;
 
-    options.worldX = options.worldX - (startX - clientX);
-    options.worldY = options.worldY - (startY - clientY);
+    options.worldX = options.worldX - ((startX - clientX) * scale);
+    options.worldY = options.worldY - ((startY - clientY) * scale);
 
     startX = clientX;
     startY = clientY;
@@ -124,8 +136,8 @@ function createInfigrid (options) {
 
     // Compute zoom factor.
     let tweakScale = Math.exp(wheel * options.zoomIntensity);
-    tweakScale = scale * tweakScale > 2 ? 1 : tweakScale;
-    tweakScale = scale * tweakScale < 0.5 ? 1 : tweakScale;
+    tweakScale = scale * tweakScale > options.maximumScale ? 1 : tweakScale;
+    tweakScale = scale * tweakScale < options.minimumScale ? 1 : tweakScale;
 
     // Computer offset
     const newScale = scale * tweakScale;
