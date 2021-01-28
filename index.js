@@ -1,5 +1,3 @@
-const Chance = require('chance');
-// const chance = new Chance();
 const m = require('mithril');
 
 const createInfigrid = require('./createInfigrid');
@@ -17,14 +15,14 @@ const tiles = {
   grass: createImage('./img/grass.png'),
   ground: createImage('./img/ground.png'),
   dirt: createImage('./img/dirt.png'),
-  water: createImage('./img/water.png')
+  water: createImage('./img/water.png'),
+  home: createImage('./img/home.png')
 };
 
 function getSection (x, y) {
   const t = tiles.grass;
   const p = tiles.ground;
   const o = tiles.dirt;
-  const f = tiles.water;
 
   return x % 2 === 0 && y % 2 === 0
     ? [
@@ -40,16 +38,16 @@ function getSection (x, y) {
         [o, o, o, o, o, o, o, o, o, o]
       ]
     : [
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f],
-        [f, f, f, f, f, f, f, f, f, f]
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o],
+        [o, o, o, o, o, o, o, o, o, o]
       ];
 }
 
@@ -62,23 +60,50 @@ function infiGrid () {
         cellWidth: vnode.attrs.cellWidth,
         cellHeight: vnode.attrs.cellHeight,
 
-        getCell: (x, y) => {
-          const sectionX = Math.floor(x / 10);
-          const sectionY = Math.floor(y / 10);
+        drawCell: ({ options, context, cellX, cellY, left, top, width, height, hovered }) => {
+          const sectionX = Math.floor(cellX / 10);
+          const sectionY = Math.floor(cellY / 10);
           const sectionTop = sectionY * 10;
           const sectionLeft = sectionX * 10;
-          const cellX = x - sectionLeft;
-          const cellY = y - sectionTop;
+          const sectionCellX = cellX - sectionLeft;
+          const sectionCellY = cellY - sectionTop;
 
           const section = getSection(sectionX, sectionY);
 
-          return section[cellY][cellX];
-          // return x % 2 === 0 && y % 2 === 0 ? '#547c21' : '#7b521d';
-        },
+          const coords = `${cellX}:${cellY}`;
 
-        onChange: (x1, y1, x2, y2) => {
-          // console.log('coords created:', { x1, y1, x2, y2 });
+          if (hovered) {
+            const image = hovered ? tiles.home : section[sectionCellY][sectionCellX];
+
+            const ratio = image.width / image.height;
+
+            context.drawImage(image, left - 1, (top - height) - 1, (width * 2) + 1, ((height * 2) * ratio) + 1);
+          } else {
+            const image = hovered ? tiles.home : section[sectionCellY][sectionCellX];
+            // context.strokeStyle = 'black';
+            // context.fillStyle = style;
+            // context.fillRect(
+            //   posX - 1,
+            //   posY - 1,
+            //   cellWidth + 1,
+            //   cellHeight + 1
+            // );
+            context.drawImage(image, left - 1, top - 1, width + 1, height + 1);
+            // context.stroke();
+
+            context.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            context.font = (12 / options.scale) + 'px Arial';
+            context.fillText(coords, left, top + (12 / options.scale));
+          }
         }
+
+        // onHover: (x, y) => {
+        //   console.log('Hover:', x, y);
+        // },
+
+        // onChange: (x1, y1, x2, y2) => {
+        //   console.log('coords created:', { x1, y1, x2, y2 });
+        // }
       });
     },
 

@@ -5,96 +5,110 @@ function createInfigrid (options) {
   options.element.style.overflow = 'hidden';
 
   const canvas = document.createElement('canvas');
+  canvas.style.position = 'absolute';
   const context = canvas.getContext('2d');
+
+  const canvasB = document.createElement('canvas');
+  canvasB.style.position = 'absolute';
+  const contextB = canvasB.getContext('2d');
 
   options.worldX = options.worldX || 0;
   options.worldY = options.worldY || 0;
   options.zoomIntensity = options.zoomIntensity || 0.02;
   options.maximumScale = options.maximumScale || 3;
   options.minimumScale = options.minimumScale || 0.1;
+  options.fpsLimit = options.fpsLimit || 50;
+  options.scale = options.scale || 1;
 
-  let lastArea;
-  let scale = 1;
+  const state = {
+    lastArea: null,
+    dirty: true,
+    previousDelta: 0,
 
-  let dirty = true;
-  let previousDelta = 0;
-  const fpsLimit = 50;
+    cellWidth: null,
+    cellHeight: null
+  };
 
-  function draw (currentDelta) {
-    window.requestAnimationFrame(draw);
-    const delta = currentDelta - previousDelta;
-
-    if (fpsLimit && delta < 1000 / fpsLimit) {
-      return;
-    }
-
-    if (!dirty) {
-      return;
-    }
-
-    dirty = false;
-    // context.clearRect(0, 0, canvas.width, canvas.height);
-
+  function resize () {
     canvas.width = options.element.offsetWidth;
     canvas.height = options.element.offsetHeight;
 
-    const cellWidth = options.cellWidth / scale;
-    const cellHeight = options.cellHeight / scale;
+    canvasB.width = options.element.offsetWidth;
+    canvasB.height = options.element.offsetHeight;
 
-    const totalRows = Math.ceil(options.element.offsetWidth / cellWidth) + 2;
-    const totalColumns = Math.ceil(options.element.offsetHeight / cellHeight) + 2;
+    state.dirty = true;
+    calc();
+  }
+  resize();
 
-    const xRaw = (options.worldX / scale) / cellWidth;
-    const yRaw = (options.worldY / scale) / cellHeight;
+  function calc () {
+    state.scaledCellWidth = options.cellWidth / options.scale;
+    state.scaledCellHeight = options.cellHeight / options.scale;
 
-    const viewX = cellWidth * (xRaw % 1);
-    const viewY = cellHeight * (yRaw % 1);
+    const scaledWorldX = (options.worldX / options.scale) / state.scaledCellWidth;
+    const scaledWorldY = (options.worldY / options.scale) / state.scaledCellHeight;
 
-    const worldX = parseInt(xRaw) * -1;
-    const worldY = parseInt(yRaw) * -1;
+    state.scaledWorldX = state.scaledCellWidth * (scaledWorldX % 1);
+    state.scaledWorldY = state.scaledCellHeight * (scaledWorldY % 1);
 
+    state.cellX = parseInt(scaledWorldX) * -1;
+    state.cellY = parseInt(scaledWorldY) * -1;
+
+    return state;
+  }
+
+  function draw (currentDelta, force = false) {
+    window.requestAnimationFrame(draw);
+    const delta = currentDelta - state.previousDelta;
+
+    if (!force && options.fpsLimit && delta < 1000 / options.fpsLimit) {
+      return;
+    }
+
+    if (!force && !state.dirty) {
+      return;
+    }
+
+    state.dirty = false;
+    contextB.clearRect(0, 0, canvas.width, canvas.height);
+
+    const totalRows = Math.ceil(options.element.offsetWidth / state.scaledCellWidth) + 2;
+    const totalColumns = Math.ceil(options.element.offsetHeight / state.scaledCellHeight) + 2;
     for (let y = -1; y < totalColumns; y++) {
       for (let x = -1; x < totalRows; x++) {
-        const pxX = viewX + (cellWidth * x);
-        const pxY = viewY + (cellHeight * y);
+        const cellY = state.cellY + y;
+        const cellX = state.cellX + x;
 
-        const actualY = (worldY + y);
-        const actualX = worldX + x;
-        // const coords = `${actualX}:${actualY}`;
+        const left = state.scaledWorldX + (state.scaledCellWidth * x);
+        const top = state.scaledWorldY + (state.scaledCellHeight * y);
 
-        // context.beginPath();
-        // context.lineWidth = 1;
-        const image = options.getCell(actualX, actualY);
-        // context.strokeStyle = 'black';
-        // context.fillStyle = style;
-        // context.fillRect(
-        //   pxX - 1,
-        //   pxY - 1,
-        //   cellWidth + 1,
-        //   cellHeight + 1
-        // );
-        context.drawImage(image, pxX - 1, pxY - 1, cellWidth + 1, cellHeight + 1);
-        // context.stroke();
-
-        // context.fillStyle = 'black';
-        // context.font = '10px Arial';
-        // context.fillText(coords, pxX + 10, pxY + 20);
+        options.drawCell({
+          state,
+          options,
+          context,
+          cellX: cellX,
+          cellY: cellY,
+          left,
+          top,
+          width: state.scaledCellWidth,
+          height: state.scaledCellHeight
+        });
       }
     }
 
-    const area = worldX + ':' + worldY + ':' + (worldY + totalColumns) + ':' + (worldX + totalRows);
+    const area = state.cellX + ':' + state.cellY + ':' + (state.cellY + totalColumns) + ':' + (state.cellX + totalRows);
 
-    if (area !== lastArea) {
-      lastArea = area;
-      options.onChange && options.onChange(worldX, worldY, worldY + totalColumns, worldX + totalRows);
+    if (area !== state.lastArea) {
+      state.lastArea = area;
+      options.onChange && options.onChange(state.cellX, state.cellY, state.cellY + totalColumns, state.cellX + totalRows);
     }
 
-    previousDelta = currentDelta;
+    state.previousDelta = currentDelta;
   }
   draw();
 
   window.redraw = () => {
-    dirty = true;
+    state.dirty = true;
   };
 
   let startX;
@@ -110,19 +124,49 @@ function createInfigrid (options) {
   }
   function touchOrMouseMove (event) {
     if (!dragging) {
+      const worldX = (options.worldX * -1) / options.scale;
+      const mouseX = event.offsetX;
+      const cellX = Math.floor((worldX + mouseX) / state.scaledCellWidth);
+
+      const worldY = (options.worldY * -1) / options.scale;
+      const mouseY = event.offsetY;
+      const cellY = Math.floor((worldY + mouseY) / state.scaledCellHeight);
+
+      const left = (worldX - (state.scaledCellWidth * cellX)) * -1;
+      const top = (worldY - (state.scaledCellHeight * cellY)) * -1;
+      contextB.clearRect(0, 0, canvas.width, canvas.height);
+
+      options.drawCell({
+        state,
+        options,
+        context: contextB,
+        cellX,
+        cellY,
+        left: left,
+        top: top,
+        width: state.scaledCellWidth,
+        height: state.scaledCellHeight,
+        hovered: true
+      });
+
+      options.mouseX = event.offsetX;
+      options.mouseY = event.offsetX;
+
+      // options.onHover && options.onHover(x, y);
+
       return;
     }
 
     const clientX = event.clientX || event.touches[0].clientX;
     const clientY = event.clientY || event.touches[0].clientY;
 
-    options.worldX = options.worldX - ((startX - clientX) * scale);
-    options.worldY = options.worldY - ((startY - clientY) * scale);
+    options.worldX = options.worldX - ((startX - clientX) * options.scale);
+    options.worldY = options.worldY - ((startY - clientY) * options.scale);
 
     startX = clientX;
     startY = clientY;
-
-    dirty = true;
+    calc();
+    state.dirty = true;
   }
   document.addEventListener('touchend', touchOrMouseEnd);
   options.element.addEventListener('touchstart', touchOrMouseStart);
@@ -131,7 +175,7 @@ function createInfigrid (options) {
   options.element.addEventListener('mousedown', touchOrMouseStart);
   document.addEventListener('mousemove', touchOrMouseMove);
 
-  canvas.addEventListener('wheel', function (event) {
+  canvasB.addEventListener('wheel', function (event) {
     event.preventDefault();
 
     const mouseX = event.offsetX;
@@ -141,27 +185,30 @@ function createInfigrid (options) {
 
     // Compute zoom factor.
     let tweakScale = Math.exp(wheel * options.zoomIntensity);
-    tweakScale = scale * tweakScale > options.maximumScale ? 1 : tweakScale;
-    tweakScale = scale * tweakScale < options.minimumScale ? 1 : tweakScale;
+    tweakScale = options.scale * tweakScale > options.maximumScale ? 1 : tweakScale;
+    tweakScale = options.scale * tweakScale < options.minimumScale ? 1 : tweakScale;
+    tweakScale = tweakScale.toFixed(5);
 
     // Computer offset
-    const newScale = scale * tweakScale;
-    const scaleDiff = scale - newScale;
+    const newScale = options.scale * tweakScale;
+    const scaleDiff = options.scale - newScale;
     options.worldX = options.worldX - (mouseX * scaleDiff);
     options.worldY = options.worldY - (mouseY * scaleDiff);
 
     // Update scale and others.
-    scale *= tweakScale;
+    options.scale *= tweakScale;
 
-    dirty = true;
+    calc();
+    state.dirty = true;
   });
 
-  window.addEventListener('resize', () => {
-    dirty = true;
-  });
+  window.addEventListener('resize', resize);
 
   options.element.innerHTML = '';
   options.element.appendChild(canvas);
+  options.element.appendChild(canvasB);
+
+  return options;
 }
 
 module.exports = createInfigrid;
