@@ -18,6 +18,7 @@
   "dependencies": {
     "chance": "^1.1.7",
     "cssbun": "^1.1.11",
+    "events": "^3.2.0",
     "jsbun": "^2.0.1",
     "mithril": "^2.0.4",
     "servatron": "^1.1.0",

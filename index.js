@@ -1,109 +1,107 @@
 const m = require('mithril');
 
-const createInfigrid = require('./createInfigrid');
+const createInficanvas = require('./createInficanvas');
+const createAssetsManager = require('./createAssetManager');
 
-function createImage (src) {
-  const image = new window.Image();
-  image.src = src;
-  image.onload = () => {
-    window.redraw && window.redraw();
-  };
-  return image;
-}
-
-const tiles = {
-  grass: createImage('./img/grass.png'),
-  ground: createImage('./img/ground.png'),
-  dirt: createImage('./img/dirt.png'),
-  water: createImage('./img/water.png'),
-  home: createImage('./img/home.png')
-};
+const assets = createAssetsManager();
+assets.add('grass', './img/grass.png');
+assets.add('ground', './img/ground.png');
+assets.add('dirt', './img/dirt.png');
+assets.add('water', './img/water.png');
+assets.add('home', './img/home.png');
 
 function getSection (x, y) {
-  const t = tiles.grass;
-  const p = tiles.ground;
-  const o = tiles.dirt;
+  const g = assets.grass;
+  const p = assets.ground;
+  const d = assets.dirt;
 
   return x % 2 === 0 && y % 2 === 0
     ? [
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, t, t, t, t, t, t, t, t, o],
-        [o, t, p, p, p, t, t, t, t, o],
-        [o, t, p, p, p, t, t, t, t, o],
-        [o, t, p, p, p, t, t, t, t, o],
-        [o, t, t, t, t, t, t, t, t, o],
-        [o, t, t, t, t, t, t, t, t, o],
-        [o, t, t, t, t, t, t, t, t, o],
-        [o, t, t, t, t, t, t, t, t, o],
-        [o, o, o, o, o, o, o, o, o, o]
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, g, g, g, g, g, g, g, g, d],
+        [d, g, p, p, p, g, g, g, g, d],
+        [d, g, p, p, p, g, g, g, g, d],
+        [d, g, p, p, p, g, g, g, g, d],
+        [d, g, g, g, g, g, g, g, g, d],
+        [d, g, g, g, g, g, g, g, g, d],
+        [d, g, g, g, g, g, g, g, g, d],
+        [d, g, g, g, g, g, g, g, g, d],
+        [d, d, d, d, d, d, d, d, d, d]
       ]
     : [
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o],
-        [o, o, o, o, o, o, o, o, o, o]
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d],
+        [d, d, d, d, d, d, d, d, d, d]
       ];
 }
 
-function infiGrid () {
+function inficanvas () {
   return {
-    oncreate: (vnode) => {
+    oncreate: async (vnode) => {
+      const { cellWidth, cellHeight } = vnode.attrs;
+
+      await assets.waitForLoad();
+
       const element = vnode.dom;
-      createInfigrid({
-        element,
-        cellWidth: vnode.attrs.cellWidth,
-        cellHeight: vnode.attrs.cellHeight,
+      const inficanvas = createInficanvas({ element });
 
-        drawCell: ({ options, context, cellX, cellY, left, top, width, height, hovered }) => {
-          const sectionX = Math.floor(cellX / 10);
-          const sectionY = Math.floor(cellY / 10);
-          const sectionTop = sectionY * 10;
-          const sectionLeft = sectionX * 10;
-          const sectionCellX = cellX - sectionLeft;
-          const sectionCellY = cellY - sectionTop;
+      const tileLayer = inficanvas.createLayer();
+      const buildingLayer = inficanvas.createLayer();
 
-          const section = getSection(sectionX, sectionY);
+      buildingLayer.on('hover', function (event, state) {
+        const cellX = Math.floor(event.x / cellWidth);
+        const cellY = Math.floor(event.y / cellHeight);
 
-          const coords = `${cellX}:${cellY}`;
+        buildingLayer.clear();
+        buildingLayer.drawImage(
+          cellX * cellWidth,
+          (cellY * cellHeight) - cellHeight,
+          cellWidth * 2,
+          cellHeight * 2,
+          assets.home
+        );
+      });
 
-          if (hovered) {
-            const image = hovered ? tiles.home : section[sectionCellY][sectionCellX];
+      tileLayer.on('move', function (state) {
+        const firstCellLeft = (state.worldX / cellWidth) * -1;
+        const firstCellTop = (state.worldY / cellHeight) * -1;
 
-            const ratio = image.width / image.height;
+        // const offsetLeft = firstCellLeft % 1;
+        // const offsetTop = firstCellTop % 1;
+        const firstCellX = Math.floor(firstCellLeft);
+        const firstCellY = Math.floor(firstCellTop);
 
-            context.drawImage(image, left - 1, (top - height) - 1, (width * 2) + 1, ((height * 2) * ratio) + 1);
-          } else {
-            const image = hovered ? tiles.home : section[sectionCellY][sectionCellX];
-            // context.strokeStyle = 'black';
-            // context.fillStyle = style;
-            // context.fillRect(
-            //   posX - 1,
-            //   posY - 1,
-            //   cellWidth + 1,
-            //   cellHeight + 1
-            // );
-            context.drawImage(image, left - 1, top - 1, width + 1, height + 1);
-            // context.stroke();
+        const totalRows = Math.ceil(element.offsetWidth / (cellWidth / state.scale)) + 2;
+        const totalColumns = Math.ceil(element.offsetHeight / (cellHeight / state.scale)) + 2;
 
-            context.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            context.font = (12 / options.scale) + 'px Arial';
-            context.fillText(coords, left, top + (12 / options.scale));
+        for (let x = firstCellX; x < firstCellX + totalRows; x++) {
+          for (let y = firstCellY; y < firstCellY + totalColumns; y++) {
+            const coords = `${x}:${y}`;
+
+            const sectionX = Math.floor(x / 10);
+            const sectionY = Math.floor(y / 10);
+            const sectionTop = sectionY * 10;
+            const sectionLeft = sectionX * 10;
+            const sectionCellX = x - sectionLeft;
+            const sectionCellY = y - sectionTop;
+
+            const section = getSection(sectionX, sectionY);
+
+            const left = x * cellWidth;
+            const top = y * cellHeight;
+            tileLayer.drawImage(left, top, cellWidth, cellHeight, section[sectionCellY][sectionCellX]);
+            tileLayer.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            tileLayer.font = (12 / state.scale) + 'px Arial';
+            tileLayer.fillText(coords, left, top + (12 / state.scale));
           }
         }
-
-        // onHover: (x, y) => {
-        //   console.log('Hover:', x, y);
-        // },
-
-        // onChange: (x1, y1, x2, y2) => {
-        //   console.log('coords created:', { x1, y1, x2, y2 });
-        // }
       });
     },
 
@@ -117,10 +115,10 @@ function demoApp () {
   return {
     view: () => {
       return m('main',
-        m('h1', 'Demo of InfiGrid'),
+        m('h1', 'Demo of Inficanvas'),
         m('p', (new Date()).toString()),
         m('div', { class: 'wrapper' },
-          m(infiGrid, { cellWidth: 50, cellHeight: 50 })
+          m(inficanvas, { cellWidth: 50, cellHeight: 50 })
         )
       );
     }
