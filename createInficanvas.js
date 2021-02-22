@@ -8,7 +8,7 @@ function createInfigrid (options) {
   options.element.style.overflow = 'hidden';
 
   options.zoomIntensity = options.zoomIntensity || 0.02;
-  options.maximumScale = options.maximumScale || 1.5;
+  options.maximumScale = options.maximumScale || 5;
   options.minimumScale = options.minimumScale || 0.5;
   options.fpsLimit = options.fpsLimit || 50;
 
@@ -41,7 +41,12 @@ function createInfigrid (options) {
     return (x, y, width, height, image) => {
       x = state.worldX + x;
       y = state.worldY + y;
-      context.drawImage(image, x / state.scale, y / state.scale, width / state.scale, height / state.scale);
+      context.drawImage(image,
+        Math.ceil(x / state.scale),
+        Math.ceil(y / state.scale),
+        Math.ceil(width / state.scale),
+        Math.ceil(height / state.scale)
+      );
     };
   }
 
@@ -49,7 +54,7 @@ function createInfigrid (options) {
     return (text, x, y) => {
       x = state.worldX + x;
       y = state.worldY + y;
-      context.fillText(text, x / state.scale, y / state.scale);
+      context.fillText(text, Math.ceil(x / state.scale), Math.ceil(y / state.scale));
     };
   }
 
@@ -76,16 +81,15 @@ function createInfigrid (options) {
     eventListener.drawImage = drawImage({ canvas, context, eventListener });
     eventListener.fillText = fillText({ canvas, context, eventListener });
 
-    eventListener.fillStyle = {
-      set (a) {
-        context.fillStyle = a;
-      }
-    };
-    eventListener.font = {
-      set (a) {
-        context.font = a;
-      }
-    };
+    Object.defineProperty(eventListener, 'font', {
+      get: function (x) { return context.font; },
+      set: function (x) { context.font = x; }
+    });
+
+    Object.defineProperty(eventListener, 'fillStyle', {
+      get: function (x) { return context.fillStyle; },
+      set: function (x) { context.fillStyle = x; }
+    });
 
     setTimeout(redraw);
 

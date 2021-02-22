@@ -1,46 +1,43 @@
 const m = require('mithril');
-
+const mem = require('memoizee');
 const createInficanvas = require('./createInficanvas');
 const createAssetsManager = require('./createAssetManager');
+const proceduralGenerator = require('./proceduralGenerator');
 
 const assets = createAssetsManager();
 assets.add('grass', './img/grass.png');
+assets.add('forest', './img/forest.jpg');
 assets.add('ground', './img/ground.png');
 assets.add('dirt', './img/dirt.png');
 assets.add('water', './img/water.png');
 assets.add('home', './img/home.png');
 
-function getSection (x, y) {
-  const g = assets.grass;
-  const p = assets.ground;
-  const d = assets.dirt;
-
-  return x % 2 === 0 && y % 2 === 0
-    ? [
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, g, g, g, g, g, g, g, g, d],
-        [d, g, p, p, p, g, g, g, g, d],
-        [d, g, p, p, p, g, g, g, g, d],
-        [d, g, p, p, p, g, g, g, g, d],
-        [d, g, g, g, g, g, g, g, g, d],
-        [d, g, g, g, g, g, g, g, g, d],
-        [d, g, g, g, g, g, g, g, g, d],
-        [d, g, g, g, g, g, g, g, g, d],
-        [d, d, d, d, d, d, d, d, d, d]
-      ]
-    : [
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d],
-        [d, d, d, d, d, d, d, d, d, d]
-      ];
+function getFromHeight (result) {
+  if (result < 0.10) {
+    return assets.water;
+  } else if (result < 0.20) {
+    return assets.dirt;
+  } else if (result < 0.8) {
+    return assets.grass;
+  } else {
+    return assets.forest;
+  }
 }
+
+const getSection = mem(function getSection (startX, startY) {
+  const a = [];
+  for (let x = 0; x < 10; x++) {
+    const b = [];
+    for (let y = 0; y < 10; y++) {
+      const result = proceduralGenerator(startX + x, startY + y);
+      const tile = getFromHeight(result);
+      b.push(tile);
+    }
+    a.push(b);
+  }
+
+  return a;
+});
 
 function inficanvas () {
   return {
@@ -92,14 +89,14 @@ function inficanvas () {
             const sectionCellX = x - sectionLeft;
             const sectionCellY = y - sectionTop;
 
-            const section = getSection(sectionX, sectionY);
+            const section = getSection(sectionTop, sectionLeft);
 
             const left = x * cellWidth;
             const top = y * cellHeight;
             tileLayer.drawImage(left, top, cellWidth, cellHeight, section[sectionCellY][sectionCellX]);
-            tileLayer.fillStyle = 'rgba(0, 0, 0, 0.6)';
-            tileLayer.font = (12 / state.scale) + 'px Arial';
-            tileLayer.fillText(coords, left, top + (12 / state.scale));
+            // tileLayer.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            // tileLayer.font = (12 / state.scale) + 'px Arial';
+            // tileLayer.fillText(coords, left, top + 12);
           }
         }
       });

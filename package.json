@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rm -rf dist && mkdir dist && cp -r img dist && cp index.html dist && cssbun -o dist/index.bundle.css style.css && jsbun -o dist/index.bundle.js ./index.js && uglifyjs dist/index.bundle.js --compress --mangle -o dist/index.bundle.js",
-    "watch:js": "jsbun -w -o ./index.bundle.js ./index.js",
+    "watch:js": "watchify -o ./index.bundle.js ./index.js",
     "watch:css": "cssbun -w -o index.bundle.css style.css",
     "watch": "npm run watch:js & npm run watch:css",
     "serve": "servatron --spa",
@@ -16,13 +16,18 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "browserify": "^17.0.0",
     "chance": "^1.1.7",
     "cssbun": "^1.1.11",
     "events": "^3.2.0",
     "jsbun": "^2.0.1",
+    "memoizee": "^0.4.15",
     "mithril": "^2.0.4",
+    "perlin": "^1.0.0",
     "servatron": "^1.1.0",
-    "uglify-es": "^3.3.9"
+    "uglify-es": "^3.3.9",
+    "voxel-perlin-terrain": "^1.0.0",
+    "watchify": "^4.0.0"
   },
   "devDependencies": {},
   "repository": {
