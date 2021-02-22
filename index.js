@@ -12,16 +12,30 @@ assets.add('dirt', './img/dirt.png');
 assets.add('water', './img/water.png');
 assets.add('home', './img/home.png');
 
+// function getFromHeight (result) {
+//   if (result < 0.10) {
+//     return assets.water;
+//   } else if (result < 0.20) {
+//     return assets.dirt;
+//   } else if (result < 0.8) {
+//     return assets.grass;
+//   } else {
+//     return assets.forest;
+//   }
+// }
+
 function getFromHeight (result) {
-  if (result < 0.10) {
-    return assets.water;
-  } else if (result < 0.20) {
-    return assets.dirt;
-  } else if (result < 0.8) {
-    return assets.grass;
-  } else {
-    return assets.forest;
-  }
+  return {
+    W: assets.water,
+    I: assets.grass,
+    F: assets.grass,
+    D: assets.dirt,
+    P: assets.grass,
+    J: assets.ground,
+    X: assets.ground,
+    S: assets.ground,
+    B: assets.ground
+  }[result.b];
 }
 
 const getSection = mem(function getSection (startX, startY) {

@@ -8,7 +8,7 @@ function createInfigrid (options) {
   options.element.style.overflow = 'hidden';
 
   options.zoomIntensity = options.zoomIntensity || 0.02;
-  options.maximumScale = options.maximumScale || 5;
+  options.maximumScale = options.maximumScale || 10;
   options.minimumScale = options.minimumScale || 0.5;
   options.fpsLimit = options.fpsLimit || 50;
 
@@ -22,7 +22,7 @@ function createInfigrid (options) {
     worldX: options.worldX || 0,
     worldY: options.worldY || 0,
 
-    scale: options.scale || 1
+    scale: options.scale || 10
   };
 
   function redraw () {
